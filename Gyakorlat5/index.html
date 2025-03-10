@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gyakorlat 5</title>
+    <script src="jatek.js"></script>
+</head>
+<body>
+    <h1>Számkitaláló játék - JavaScript program</h1>
+    <p>A játék lényege: A program véletlenszerűn generál egy számot 0 és 1000000 között, a te feladatot pedig ennek a számnak a kitalálása!</p>
+    <p>Összesen 20 tipp lehetőséged van, ha az általad tippelt szám kisebb vagy nagyobb a megadott számnál, akkor a program jelzi azt:</p>
+    <ul>
+        <li>„XY. tipp nem talált: A megoldás kisebb.”, ha a tipp nagyobb a keresett számnál.</li>
+        <li>„XY. tipp nem talált: A megoldás nagyobb.”, ha a tipp kisebb a keresett számnál.</li>
+        <li>„Gratulálok, XY lépésből eltaláltad!”, ha a tipp helyes.</li>
+        <li>„Sajnos ez most nem sikerült!”, ha a játékos elérte a maximális próbálkozások számát, de nem találta el a számot.</li>
+    </ul>
+    <p>A játék akkor ér véget, amikor a játékos eltalálja a számot vagy eléri a tippek maximális számát.</p>
+    <button onclick="szamkitalaloJatek()">Játék indítása</button>
+</body>
+</html>
