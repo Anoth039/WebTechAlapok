@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git App - Repo keresés</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h4>Repository keresése</h4>
+
+    <label for="repo-name">Repository neve:</label>
+    <input type="text" id="repo-name">
+    <button id="search-btn" class="btn btn-primary">Keresés</button>
+
+    <div id="results"></div>
+
+    <script src="app.js"></script>
+    <script>
+        function searchRepo(searchText) {
+            fetch('https://api.github.com/search/repositories?q=' + encodeURIComponent(searchText), {
+                headers: {
+                    'Authorization': 'Bearer ' + GITHUB_ACCESS_TOKEN
+                }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    const resultDiv = document.querySelector('#results');
+                    resultDiv.innerHTML = '';
+
+                    for (const repo of data.items) {
+                        const repoHtml = `
+                            <div class="card">
+                                <a href="repo.html?name=${repo.full_name}"><h4>${repo.full_name}</h4></a>
+                                <p>${repo.description}</p>
+                                <p><strong>Topics:</strong> ${repo.topics.join(', ')}</p>
+                            </div>
+                        `;
+                        resultDiv.innerHTML += repoHtml;
+                    }
+                });
+        }
+
+        const searchBtn = document.querySelector('#search-btn');
+        searchBtn.addEventListener('click', () => {
+            const searchText = document.querySelector('#repo-name').value;
+            searchRepo(searchText);
+        });
+    </script>
+</body>
+</html>
