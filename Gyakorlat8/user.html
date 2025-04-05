@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Felhasználó</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <script src="app.js"></script>
+    <h2>Felhasználói profil</h2>
+    <div id="user-profile"></div>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const username = params.get('id');
+
+        if (username) {
+            fetch(`https://api.github.com/users/${username}`, {
+                headers: {
+                    'Authorization': 'Bearer ' + GITHUB_ACCESS_TOKEN
+                }
+            })
+            .then(res => res.json())
+            .then(user => {
+                const profileDiv = document.getElementById('user-profile');
+                let profileHTML = `<div class="card">
+                    ${user.avatar_url ? `<img src="${user.avatar_url}" alt="Avatar" class="avatar">` : ''}
+                    ${user.name ? `<h3>${user.name}</h3>` : ''}
+                    ${user.blog ? `<p><a href="${user.blog}" target="_blank">${user.blog}</a></p>` : ''}
+                    ${user.location ? `<p>Helyszín: ${user.location}</p>` : ''}
+                    ${user.bio ? `<p>${user.bio}</p>` : ''}
+                    ${user.public_repos ? `<p>Publikus repók: ${user.public_repos}</p>` : ''}
+                    ${user.followers ? `<p>Követők: ${user.followers}</p>` : ''}
+                </div>`;
+                profileDiv.innerHTML = profileHTML;
+            })
+            .catch(err => console.error('Hiba a lekérés során:', err));
+        }
+    </script>
+</body>
+</html>
