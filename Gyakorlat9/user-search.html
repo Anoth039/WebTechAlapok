@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Felhasználó keresés</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h4>Felhasználó keresése</h4>
+
+    <label for="user-name">Felhasználónév:</label>
+    <input type="text" id="user-name">
+    <button id="user-search-btn" class="btn btn-primary">Keresés</button>
+
+    <div id="user-results"></div>
+
+    <script src="app.js"></script>
+    <script>
+        function searchUser() {
+            const searchInput = document.querySelector('#user-name').value.trim();
+
+            if (!searchInput) {
+                alert('A keresési mező nem lehet üres!');
+                return;
+            }
+
+            fetch(`https://api.github.com/search/users?q=${encodeURIComponent(searchInput)}`, {
+                headers: {
+                    'Authorization': 'Bearer ' + GITHUB_ACCESS_TOKEN
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                const resultDiv = document.querySelector('#user-results');
+                resultDiv.innerHTML = '';
+
+                if (!data.items || data.items.length === 0) {
+                    resultDiv.innerHTML = '<p>Nincs találat.</p>';
+                    return;
+                }
+
+                data.items.forEach(user => {
+                    const userHtml = `
+                        <div class="user-card">
+                            <img src="${user.avatar_url}" alt="${user.login}" width="50">
+                            <a href="user.html?id=${user.login}">${user.login}</a>
+                        </div>
+                    `;
+                    resultDiv.innerHTML += userHtml;
+                });
+            })
+            .catch(err => console.error('Hiba történt:', err));
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelector('#user-search-btn').addEventListener('click', searchUser);
+        });
+    </script>
+</body>
+</html>

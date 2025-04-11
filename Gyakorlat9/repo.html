@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git App - Repo adatlap</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h4 id="name"></h4>
+    <p id="description"></p>
+    <p id="homepage"></p>
+    <button id="star-btn" class="btn"></button>
+
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <h4>Files</h4>
+                <table id="file-list">
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Size</th>
+                    </tr>
+                </table>
+            </div>
+            <div class="col">
+                <h4>Latest issues</h4>
+                <ul id="issues"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const repoName = params.get('name');
+
+        if (!repoName) {
+            window.location = 'index.html';
+        }
+
+        async function loadRepo(repoName) {
+            try {
+                const res = await fetch('https://api.github.com/repos/' + repoName, {
+                    headers: {
+                        'Authorization': 'Bearer ' + GITHUB_ACCESS_TOKEN
+                    }
+                });
+
+                if (!res.ok) throw 'Server error occurred, status code: ' + res.status;
+
+                const data = await res.json();
+
+                document.querySelector('#name').textContent = data.full_name;
+                document.querySelector('#description').textContent = data.description;
+
+                if (data.homepage) {
+                    document.querySelector('#homepage').innerHTML = `
+                        <strong>Homepage:</strong>
+                        <a href="${data.homepage}">${data.homepage}</a>
+                    `;
+                }
+            } catch (err) {
+                alert(typeof err === 'string' ? err : 'Hiba történt');
+                console.error(err);
+            }
+        }
+
+        async function loadFiles(repoName) {
+            try {
+                const res = await fetch(`https://api.github.com/repos/${repoName}/contents/`, {
+                    headers: {
+                        'Authorization': 'Bearer ' + GITHUB_ACCESS_TOKEN
+                    }
+                });
+
+                if (!res.ok) throw 'Server error occurred, status code: ' + res.status;
+
+                const data = await res.json();
+                const tableElem = document.querySelector('#file-list');
+
+                for (const file of data) {
+                    const fileHtml = `
+                        <tr>
+                            <td>${file.name}</td>
+                            <td>${file.type}</td>
+                            <td>${file.size} bytes</td>
+                        </tr>
+                    `;
+                    tableElem.innerHTML += fileHtml;
+                }
+            } catch (err) {
+                alert(typeof err === 'string' ? err : 'Hiba történt');
+                console.error(err);
+            }
+        }
+
+        async function loadIssues(repoName) {
+            try {
+                const res = await fetch(`https://api.github.com/repos/${repoName}/issues`, {
+                    headers: {
+                        'Authorization': 'Bearer ' + GITHUB_ACCESS_TOKEN
+                    }
+                });
+
+                if (!res.ok) throw 'Server error occurred, status code: ' + res.status;
+
+                const data = await res.json();
+                const issuesList = document.querySelector('#issues');
+
+                for (const issue of data) {
+                    const issueHtml = `<li><a href="issue.html?repo=${repoName}&issue=${issue.number}">${issue.title}</a></li>`;
+                    issuesList.innerHTML += issueHtml;
+                }
+            } catch (err) {
+                alert(typeof err === 'string' ? err : 'Hiba történt');
+                console.error(err);
+            }
+        }
+
+        async function setupStarButton(repoName) {
+            const starBtn = document.getElementById('star-btn');
+            const url = `https://api.github.com/user/starred/${repoName}`;
+
+            try {
+                const res = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + GITHUB_ACCESS_TOKEN,
+                        'Accept': 'application/vnd.github+json'
+                    }
+                });
+
+                let isStarred;
+
+                if (res.status === 204) {
+                    isStarred = true;
+                } else if (res.status === 404) {
+                    isStarred = false;
+                } else {
+                    throw new Error('Nem sikerült lekérdezni a csillagozás állapotát: ' + res.status);
+                }
+
+                updateButton(isStarred);
+
+                starBtn.onclick = async () => {
+                    const method = isStarred ? 'DELETE' : 'PUT';
+                    const response = await fetch(url, {
+                        method,
+                        headers: {
+                            'Authorization': 'Bearer ' + GITHUB_ACCESS_TOKEN,
+                            'Accept': 'application/vnd.github+json'
+                        }
+                    });
+
+                    if (response.status === 204 || response.status === 201) {
+                        isStarred = !isStarred;
+                        updateButton(isStarred);
+                    } else {
+                        alert('Hiba történt a csillagozás módosításakor.');
+                        console.log('Status:', response.status, await response.text());
+                    }
+                };
+
+            } catch (err) {
+                console.error('Hiba a csillagozás ellenőrzésekor:', err);
+            }
+        }
+
+        function updateButton(isStarred) {
+            const starBtn = document.getElementById('star-btn');
+            starBtn.textContent = isStarred ? 'Kedvencekből eltávolít' : 'Kedvencnek jelöl';
+        }
+
+        loadRepo(repoName);
+        loadFiles(repoName);
+        loadIssues(repoName);
+        setupStarButton(repoName);
+    </script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git App - Issue</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <h3 id="title"></h3>
+
+    <div class="card">
+        <p id="user"></p>
+        <p id="body"></p>
+    </div>
+
+    <h4>Discussion</h4>
+    <div id="discussion"></div>
+
+    <div id="new-comment" class="card">
+        <label for="comment">Új komment írása:</label>
+        <textarea name="comment" id="comment" rows="5"></textarea>
+        <button id="new-comment-btn" class="btn btn-primary">Küldés</button>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        function checkError(res) {
+            if (!res.ok) {
+                throw 'Unexpected server error, status code: ' + res.status;
+            }
+        }
+
+        function handleError(err) {
+            if (typeof err == 'string') {
+                alert(err);
+            }
+
+            console.error(err);
+        }
+
+        function addComment(comment) {
+            const discussionElem = document.querySelector('#discussion');
+            const commentHtml = `
+                <div class="card">
+                    <strong>${comment.user.login} írta ${new Date(comment.created_at).toLocaleString()}-kor:</strong>
+                    <p class="comment-body">${comment.body}</p>
+                </div>
+            `;
+            discussionElem.insertAdjacentHTML('beforeend', commentHtml);
+        }
+
+        async function loadIssue(repoName, issueNumber) {
+            try {
+                const res = await fetch(`https://api.github.com/repos/${repoName}/issues/${issueNumber}`, {
+                    headers: {
+                        'Authorization': 'Bearer ' + GITHUB_ACCESS_TOKEN
+                    }
+                });
+
+                checkError(res);
+
+                const issue = await res.json();
+
+                const titleElem = document.querySelector('#title');
+                titleElem.textContent = issue.title;
+
+                const userElem = document.querySelector('#user');
+                userElem.innerHTML = `<strong>${issue.user.login} írta ${new Date(issue.created_at).toLocaleString()}-kor:</strong>`;
+
+                const bodyElem = document.querySelector('#body');
+                body.innerHTML = issue.body;
+            } catch (err) {
+                handleError(err);
+            }
+        }
+
+        async function loadComments(repoName, issueNumber) {
+            try {
+                const res = await fetch(`https://api.github.com/repos/${repoName}/issues/${issueNumber}/comments`, {
+                    headers: {
+                        'Authorization': 'Bearer ' + GITHUB_ACCESS_TOKEN
+                    }
+                });
+
+                checkError(res);
+
+                const comments = await res.json();
+
+                for (const comment of comments) {
+                    addComment(comment);
+                }
+            } catch (err) {
+                handleError(err);
+            }
+        }
+
+        const params = new URLSearchParams(window.location.search);
+        const repo = params.get('repo');
+        const issue = params.get('issue');
+
+        loadIssue(repo, issue);
+        loadComments(repo, issue);
+    </script>
+</body>
+
+</html>

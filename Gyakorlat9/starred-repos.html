@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kedvenc repo-k</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <script src="app.js"></script>
+    <h2>Kedvenc (csillagozott) repository-k</h2>
+    <div id="starred-list"></div>
+
+    <script>
+        fetch('https://api.github.com/user/starred', {
+            headers: {
+                'Authorization': 'Bearer ' + GITHUB_ACCESS_TOKEN
+            }
+        })
+        .then(res => res.json())
+        .then(repos => {
+            const listDiv = document.getElementById('starred-list');
+            if (!repos || repos.length === 0) {
+                listDiv.innerHTML = '<p>Nincsenek csillagozott repók.</p>';
+                return;
+            }
+
+            const list = document.createElement('ul');
+            repos.forEach(repo => {
+                const item = document.createElement('li');
+                item.innerHTML = `<a href="repo.html?name=${repo.full_name}">${repo.full_name}</a>`;
+                list.appendChild(item);
+            });
+            listDiv.appendChild(list);
+        })
+        .catch(err => {
+            console.error('Hiba történt a csillagozott repók lekérésekor:', err);
+            document.getElementById('starred-list').innerHTML = '<p>Nem sikerült betölteni a csillagozott repókat.</p>';
+        });
+    </script>
+</body>
+</html>
